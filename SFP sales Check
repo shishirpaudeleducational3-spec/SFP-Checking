@@ -1,0 +1,35 @@
+WITH SalesData AS
+(
+    SELECT
+        ISBN,
+        OrderID,
+        Discounted,
+        CASE
+            WHEN FetchedOn >= DATEADD(DAY, -60, '2026-09-01')
+             AND FetchedOn < '2026-09-01'
+                THEN 'Before'
+
+            WHEN FetchedOn >= DATEADD(DAY, 7, '2026-09-01')
+             AND FetchedOn < DATEADD(DAY, 68, '2026-09-01')
+                THEN 'After'
+        END AS Period
+
+    FROM DailySales.dbo.DailySales
+    WHERE InventorySubType = 'NBS'
+      AND Marketplace = 'AmazonUK'
+)
+
+SELECT
+    ISBN,
+    Period,
+    COUNT(OrderID) AS TotalOrders,
+    COUNT(CASE WHEN Discounted = 'Prime' THEN 1 END) AS TotalSFPOrders
+
+FROM SalesData
+WHERE Period IS NOT NULL
+GROUP BY
+    ISBN,
+    Period
+ORDER BY
+    ISBN,
+    Period;
